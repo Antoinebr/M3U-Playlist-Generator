@@ -4,37 +4,62 @@ const path = require('path');
 // Video file extensions to look for
 const VIDEO_EXTENSIONS = ['.mkv', '.mp4', '.avi', '.mov', '.wmv'];
 
-function isVideoFile(file) {
-    return VIDEO_EXTENSIONS.includes(path.extname(file).toLowerCase());
-}
+/**
+ * Check if a file is a video based on its extension
+ * @param {string} file - File name to check
+ * @returns {boolean} - True if file is a video
+ */
+const isVideoFile = (file) => VIDEO_EXTENSIONS.includes(path.extname(file).toLowerCase());
 
-function generateM3UContent(directoryPath, baseDir = null) {
-    if (!baseDir) baseDir = directoryPath;
-    
-    let content = [];
-    const files = fs.readdirSync(directoryPath);
+/**
+ * Generate M3U content from a directory
+ * @param {string} directoryPath - Path to scan for videos
+ * @param {string|null} baseDir - Base directory for relative paths
+ * @returns {string[]} - Array of video file paths
+ */
+const generateM3UContent = async (directoryPath, baseDir = null) => {
+    try {
+        baseDir = baseDir || directoryPath;
+        const files = await fs.promises.readdir(directoryPath);
+        
+        const processFiles = async () => {
+            const results = await Promise.all(
+                files.map(async (file) => {
+                    const fullPath = path.join(directoryPath, file);
+                    const stats = await fs.promises.stat(fullPath);
 
-    files.forEach(file => {
-        const fullPath = path.join(directoryPath, file);
-        const stats = fs.statSync(fullPath);
+                    if (stats.isDirectory()) {
+                        // Recursively process subdirectories
+                        return generateM3UContent(fullPath, baseDir);
+                    } else if (stats.isFile() && isVideoFile(file)) {
+                        // Get relative path from base directory
+                        return [path.relative(baseDir, fullPath)];
+                    }
+                    return [];
+                })
+            );
 
-        if (stats.isDirectory()) {
-            // Recursively process subdirectories
-            content = content.concat(generateM3UContent(fullPath, baseDir));
-        } else if (stats.isFile() && isVideoFile(file)) {
-            // Get relative path from base directory
-            const relativePath = path.relative(baseDir, fullPath);
-            content.push(relativePath);
-        }
-    });
+            // Flatten the results array and remove empty entries
+            return results.flat().filter(Boolean);
+        };
 
-    return content;
-}
+        return await processFiles();
+    } catch (error) {
+        console.error('Error generating M3U content:', error);
+        throw error;
+    }
+};
 
-function createM3UPlaylist(directoryPath, outputFile, baseUrl = '') {
+/**
+ * Create an M3U playlist from a directory
+ * @param {string} directoryPath - Path to scan for videos
+ * @param {string} outputFile - Path to output M3U file
+ * @param {string} baseUrl - Base URL for video file paths
+ */
+const createM3UPlaylist = async (directoryPath, outputFile, baseUrl = '') => {
     try {
         // Generate M3U content
-        const videoFiles = generateM3UContent(directoryPath);
+        const videoFiles = await generateM3UContent(directoryPath);
         
         // Create M3U file content
         let m3uContent = '#EXTM3U\n';
@@ -48,13 +73,13 @@ function createM3UPlaylist(directoryPath, outputFile, baseUrl = '') {
         });
 
         // Write to file
-        fs.writeFileSync(outputFile, m3uContent);
+        await fs.promises.writeFile(outputFile, m3uContent);
         console.log(`Playlist generated successfully: ${outputFile}`);
         console.log(`Found ${videoFiles.length} video files`);
     } catch (error) {
         console.error('Error generating playlist:', error);
     }
-}
+};
 
 // Export the functions for use in server.js
 module.exports = {

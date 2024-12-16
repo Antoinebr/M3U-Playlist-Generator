@@ -35,7 +35,7 @@ const generateAuthenticatedUrl = (urlPath) => {
 };
 
 // Routes
-app.get('/playlist', authenticateApiKey, (req, res) => {
+app.get('/playlist', authenticateApiKey, async (req, res) => {
     try {
         const videosPath = process.env.VIDEOS_PATH;
 
@@ -44,7 +44,7 @@ app.get('/playlist', authenticateApiKey, (req, res) => {
         }
 
         // Generate M3U content
-        const videoFiles = generateM3UContent(videosPath);
+        const videoFiles = await generateM3UContent(videosPath);
         
         // Create M3U file content
         let m3uContent = '#EXTM3U\n';
