@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  m3u-generator:
+    build: .
+    container_name: m3u-generator
+    ports:
+      - "3023:3000"
+    volumes:
+      - ./videos:/usr/src/app/videos
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_KEY=your_secret_api_key_here
+      - VIDEOS_PATH=./videos
+      - BASE_URL=https://your-domain.com
+      - HTTP_AUTH_USERNAME=your_username
+      - HTTP_AUTH_PASSWORD=your_password
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

@@ -67,6 +67,20 @@ npm run prod
 https://your-domain.com/playlist?code=your_secret_api_key_here
 ```
 
+### Ignore files 
+
+```bash
+cp fileignore.sample .fileignore
+```
+
+Configure your `.fileignore` file:
+
+```
+comedy/*.mp4
+actions/*.*
+```
+
+
 ## 📁 Directory Structure
 
 Your video files can be organized in any structure:
@@ -113,6 +127,51 @@ The application provides two layers of security:
 | BASE_URL | Base URL for video access | Yes |
 | HTTP_AUTH_USERNAME | Basic auth username | Yes |
 | HTTP_AUTH_PASSWORD | Basic auth password | Yes |
+
+## 🐳 Docker Deployment
+
+### Prerequisites
+- Docker
+- Docker Compose
+- A directory of video files you want to stream
+
+### Quick Start
+1. Clone the repository
+2. Prepare your video directory
+3. Configure environment variables
+4. Run the application
+
+### Configuration
+Before running, modify the `docker-compose.yml` environment variables:
+- `API_KEY`: Set a secure API key for playlist generation
+- `VIDEOS_PATH`: Path to your video directory inside the container
+- `BASE_URL`: Your server's base URL
+- `HTTP_AUTH_USERNAME`: Username for stream authentication
+- `HTTP_AUTH_PASSWORD`: Password for stream authentication
+
+### Running with Docker
+```bash
+# Build and start the container
+docker-compose up -d
+
+# View logs
+docker-compose logs -f m3u-generator
+
+# Stop the container
+docker-compose down
+```
+
+### Accessing the Application
+- Web Interface: `http://localhost:3023`
+- Generate Playlist: `http://localhost:3023/playlist?api_key=your_secret_api_key`
+
+### Volume Mapping
+The `./videos` directory in your project root will be mounted to `/usr/src/app/videos` in the container. Ensure this directory contains your video files.
+
+### Troubleshooting
+- Check container logs for any configuration issues
+- Verify environment variables are correctly set
+- Ensure video directory permissions allow container access
 
 ## 🤝 Contributing
 

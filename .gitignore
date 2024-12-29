@@ -17,3 +17,5 @@ variables.env.now
 sync.sh
 videos/*
 .env
+devNotes.*
+.fileignore
