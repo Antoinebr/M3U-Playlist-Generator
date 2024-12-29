@@ -73,7 +73,7 @@ https://your-domain.com/playlist?code=your_secret_api_key_here
 cp fileignore.sample .fileignore
 ```
 
-Configure your `.env` file:
+Configure your `.fileignore` file:
 
 ```
 comedy/*.mp4
