@@ -67,6 +67,20 @@ npm run prod
 https://your-domain.com/playlist?code=your_secret_api_key_here
 ```
 
+### Ignore files 
+
+```bash
+cp fileignore.sample .fileignore
+```
+
+Configure your `.env` file:
+
+```
+comedy/*.mp4
+actions/*.*
+```
+
+
 ## 📁 Directory Structure
 
 Your video files can be organized in any structure:

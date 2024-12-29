@@ -4,6 +4,43 @@ const path = require('path');
 // Video file extensions to look for
 const VIDEO_EXTENSIONS = ['.mkv', '.mp4', '.avi', '.mov', '.wmv'];
 
+
+
+/**
+ * Read the `.filetignore` file and parse the exclusion patterns.
+ */
+const getIgnorePatterns = async (ignoreFilePath = '.fileignore') => {
+    try {
+        const data = await fs.readFileSync(ignoreFilePath, 'utf-8');
+        return data
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line && !line.startsWith('#')); // Remove empty lines and comments
+    } catch (error) {
+        console.error(`Error reading ignore file: ${error.message}`);
+        return [];
+    }
+};
+
+/**
+ * Check if a file matches any of the ignore patterns.
+ */
+const isIgnored = (filePath, ignorePatterns) =>
+    ignorePatterns.some(pattern => {
+        // Convert pattern to a regex
+        const regex = new RegExp(`^${pattern.replace('*', '.*')}$`);
+        return regex.test(filePath);
+    });
+
+/**
+ * Filter the list of files based on the `.filetignore` patterns.
+ */
+const filterFiles = (fileList, ignorePatterns) =>
+    fileList.filter(file => !isIgnored(file, ignorePatterns));
+
+
+
+
 /**
  * Check if a file is a video based on its extension
  * @param {string} file - File name to check
@@ -40,7 +77,13 @@ const generateM3UContent = async (directoryPath, baseDir = null) => {
             );
 
             // Flatten the results array and remove empty entries
-            return results.flat().filter(Boolean);
+            const cleanedList = results.flat().filter(Boolean);
+        
+            const ignorePatterns = await getIgnorePatterns();
+
+            const filteredFiles = filterFiles(cleanedList, ignorePatterns);
+         
+            return filteredFiles;
         };
 
         return await processFiles();
